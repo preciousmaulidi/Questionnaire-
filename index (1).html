@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PreMa Questions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: one question per screen, big tap targets, progress dots on top, result + send-back screen at the end. */
+:root {
+  --bg: #fdeff4;
+  --card: #ffffff;
+  --ink: #2b1630;
+  --muted: #7a5f83;
+  --accent: #d4206c;
+  --accent-ink: #ffffff;
+  --line: #efc9da;
+  --soft: #fbdce9;
+  --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c0f24; --card: #2a1735; --ink: #fbe8f1; --muted: #c3a6cf;
+    --accent: #ff5c9d; --accent-ink: #2b0a1a; --line: #4a2c5a; --soft: #3a2149;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c0f24; --card: #2a1735; --ink: #fbe8f1; --muted: #c3a6cf;
+  --accent: #ff5c9d; --accent-ink: #2b0a1a; --line: #4a2c5a; --soft: #3a2149;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 17px; line-height: 1.45;
+  padding-block: 20px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.dots { display: flex; gap: 6px; }
+.dot { width: 22px; height: 6px; border-radius: 6px; background: var(--line); transition: background .25s; }
+.dot.done { background: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 24px 20px 22px; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.count { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { font-family: var(--display); font-weight: 800; line-height: 1.12; margin: 0; text-wrap: balance; }
+h2 { font-size: 29px; }
+h1 { font-size: 34px; }
+p { margin: 0; text-wrap: pretty; }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt, .btn {
+  font: inherit; font-weight: 500; text-align: left; color: var(--ink);
+  background: var(--soft); border: 2px solid transparent; border-radius: 16px;
+  padding: 16px 16px; min-height: 56px; cursor: pointer; width: 100%;
+  transition: transform .12s, border-color .15s, background .15s;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.opt .k { font-family: var(--display); font-weight: 800; color: var(--accent); min-width: 1.1em; }
+.opt:hover { border-color: var(--accent); }
+.opt:active { transform: scale(.98); }
+.opt.picked { border-color: var(--accent); background: var(--card); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); justify-content: center; text-align: center; font-weight: 700; }
+.btn.ghost { justify-content: center; text-align: center; background: transparent; border-color: var(--line); }
+
+/* question 1 playground */
+.arena { position: relative; height: 210px; border-radius: 16px; background: var(--soft); overflow: hidden; touch-action: manipulation; }
+.arena .yes { position: absolute; left: 14px; top: 14px; width: calc(50% - 20px); min-height: 56px; justify-content: center; font-weight: 800; font-size: 20px; }
+.arena .no { position: absolute; width: 96px; min-height: 48px; justify-content: center; background: var(--card); border: 2px solid var(--line); transition: left .18s ease-out, top .18s ease-out; padding: 10px; touch-action: none; }
+.taunt { min-height: 1.5em; color: var(--muted); font-size: 15px; }
+
+/* date */
+.date { display: flex; flex-direction: column; gap: 10px; }
+input[type="date"] { font: inherit; width: 100%; padding: 15px 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--card); color: var(--ink); min-height: 56px; }
+.note { font-size: 15px; color: var(--muted); }
+.note.hit { color: var(--accent); font-weight: 700; }
+
+/* result */
+.msg { background: var(--soft); border-radius: 16px; padding: 16px; }
+.summary { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; flex-direction: column; gap: 2px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row .q { font-size: 13px; color: var(--muted); }
+.row .a { font-weight: 700; overflow-wrap: anywhere; }
+.status { font-size: 15px; color: var(--muted); min-height: 1.4em; }
+textarea.fallback { width: 100%; min-height: 120px; font: inherit; font-size: 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); color: var(--ink); padding: 10px; }
+a.btn { text-decoration: none; }
+.fade { animation: in .28s ease-out both; }
+@keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .fade { animation: none; } .arena .no, .dot, .opt { transition: none; } }
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <span class="brand">For PreMa</span>
+    <div class="dots" id="dots" aria-hidden="true"></div>
+  </div>
+  <main class="card fade" id="card" aria-live="polite"></main>
+</div>
+
+<script>
+(function () {
+  var TOTAL = 6;
+  var answers = {};
+  var step = 0;
+  var card = document.getElementById('card');
+  var dotsEl = document.getElementById('dots');
+
+  var LABELS = [
+    'Winnie, do you love me?',
+    'Why do you love me?',
+    'What would you like to do with me?',
+    'Select a date',
+    'Your official excuse for ignoring my texts or replying late?',
+    "Your final verdict"
+  ];
+
+  function dots() {
+    dotsEl.innerHTML = '';
+    for (var i = 0; i < TOTAL; i++) {
+      var d = document.createElement('span');
+      d.className = 'dot' + (i < step || step >= TOTAL ? ' done' : (i === step ? ' done' : ''));
+      dotsEl.appendChild(d);
+    }
+  }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function mount(nodes) {
+    card.innerHTML = '';
+    nodes.forEach(function (n) { card.appendChild(n); });
+    card.classList.remove('fade'); void card.offsetWidth; card.classList.add('fade');
+    dots();
+  }
+
+  function header(i) {
+    return [el('div', 'count', 'Question ' + (i + 1) + ' of ' + TOTAL), el('h2', null, LABELS[i])];
+  }
+
+  function choice(i, options) {
+    var box = el('div', 'opts');
+    options.forEach(function (o, idx) {
+      var b = el('button', 'opt');
+      b.type = 'button';
+      b.appendChild(el('span', 'k', String.fromCharCode(65 + idx)));
+      b.appendChild(el('span', null, o));
+      b.addEventListener('click', function () {
+        answers[i] = o;
+        b.classList.add('picked');
+        setTimeout(function () { step = i + 1; render(); }, 260);
+      });
+      box.appendChild(b);
+    });
+    return box;
+  }
+
+  /* ---- Q1: the No button runs away ---- */
+  function q1() {
+    var arena = el('div', 'arena');
+    var yes = el('button', 'btn primary yes', 'Yes'); yes.type = 'button';
+    var no = el('button', 'btn no', 'No'); no.type = 'button';
+    var taunt = el('p', 'taunt', '');
+    var tries = 0;
+    var lines = [
+      '', 'Nice try.', 'Too slow.', 'It does not want to be pressed.',
+      'Your thumb is not fast enough.', 'Just press Yes, PreMa.', 'The No button is tired now.'
+    ];
+    var pos = { x: 0, y: 0 };
+
+    function place(x, y) { no.style.left = x + 'px'; no.style.top = y + 'px'; pos.x = x; pos.y = y; }
+    function dodge() {
+      var W = arena.clientWidth, H = arena.clientHeight;
+      var bw = no.offsetWidth, bh = no.offsetHeight;
+      var maxX = Math.max(0, W - bw - 10), maxY = Math.max(0, H - bh - 10);
+      var x, y, n = 0;
+      do {
+        x = 10 + Math.random() * maxX;
+        y = 10 + Math.random() * maxY;
+        n++;
+      } while (n < 20 && (Math.abs(x - pos.x) + Math.abs(y - pos.y) < 90 ||
+               (x < yes.offsetLeft + yes.offsetWidth + 8 && y < yes.offsetTop + yes.offsetHeight + 8)));
+      place(x, y);
+      tries++;
+      taunt.textContent = lines[Math.min(tries, lines.length - 1)];
+    }
+    ['pointerenter', 'pointerdown', 'touchstart', 'mousedown', 'focus'].forEach(function (ev) {
+      no.addEventListener(ev, function (e) { if (e.cancelable) e.preventDefault(); dodge(); }, { passive: false });
+    });
+    no.addEventListener('click', function (e) { e.preventDefault(); dodge(); });
+    yes.addEventListener('click', function () { answers[0] = 'Yes'; step = 1; render(); });
+
+    arena.appendChild(yes); arena.appendChild(no);
+    var nodes = header(0).concat([arena, taunt]);
+    mount(nodes);
+    var W = arena.clientWidth, H = arena.clientHeight;
+    place(Math.max(10, W - no.offsetWidth - 14), Math.max(10, H - no.offsetHeight - 14));
+  }
+
+  /* ---- Q4: any date turns into this weekend ---- */
+  function thisSaturday() {
+    var d = new Date();
+    d.setHours(12, 0, 0, 0);
+    var add = (6 - d.getDay() + 7) % 7;
+    d.setDate(d.getDate() + add);
+    return d;
+  }
+  function iso(d) {
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + m + '-' + day;
+  }
+  function pretty(d) {
+    return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+  function q4() {
+    var sat = thisSaturday();
+    var wrap = el('div', 'date');
+    var input = document.createElement('input');
+    input.type = 'date'; input.id = 'datePick';
+    input.setAttribute('aria-label', 'Pick a date');
+    var note = el('p', 'note', 'Pick any day you like.');
+    var go = el('button', 'btn primary', 'Continue'); go.type = 'button'; go.hidden = true;
+
+    input.addEventListener('change', function () {
+      if (!input.value) return;
+      input.value = iso(sat);
+      answers[3] = pretty(sat);
+      note.className = 'note hit';
+      note.textContent = 'Oh, you picked ' + pretty(sat) + '. Funny how that works.';
+      go.hidden = false;
+    });
+    go.addEventListener('click', function () { step = 4; render(); });
+
+    wrap.appendChild(input); wrap.appendChild(note);
+    mount(header(3).concat([wrap, go]));
+  }
+
+  /* ---- save answers to the database (insert only) ---- */
+  var SUPABASE_URL = 'https://zhawyqrtrpdivvaqhhhq.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_cumJP_IiPBI-DFSH66lLMg_8VddgP3e';
+  var saved = false;
+  function saveAnswers(onDone) {
+    if (saved) return;
+    var payload = { answers: { name: 'Winnie', replies: [] } };
+    for (var i = 0; i < TOTAL; i++) payload.answers.replies.push({ question: LABELS[i], answer: answers[i] || null });
+    fetch(SUPABASE_URL + '/rest/v1/winnie_answers', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    }).then(function (r) {
+      if (r.ok) { saved = true; onDone(true); } else { onDone(false); }
+    }, function () { onDone(false); });
+  }
+
+  /* ---- result ---- */
+  function summaryText() {
+    var lines = ['Winnie (PreMa) answered your questions:', ''];
+    for (var i = 0; i < TOTAL; i++) lines.push((i + 1) + '. ' + LABELS[i] + '\n   ' + (answers[i] || '-'));
+    return lines.join('\n');
+  }
+
+  function result() {
+    var loved = /^A/.test('') || (answers[5] || '').indexOf('I really love you') === 0;
+    var big = el('h1', null, loved ? 'I knew it, PreMa.' : 'Wow. Ouch, PreMa.');
+    var msg = el('p', 'msg', loved
+      ? 'Thank you for answering. See you ' + (answers[3] || 'this weekend') + '. I am looking forward to it.'
+      : 'That answer has been noted and rejected. See you ' + (answers[3] || 'this weekend') + ' anyway.');
+
+    var sum = el('div', 'summary');
+    for (var i = 0; i < TOTAL; i++) {
+      var r = el('div', 'row');
+      r.appendChild(el('span', 'q', LABELS[i]));
+      r.appendChild(el('span', 'a', answers[i] || '-'));
+      sum.appendChild(r);
+    }
+
+    var text = summaryText();
+    var status = el('p', 'status', '');
+    var wa = el('a', 'btn primary', 'Send my answers on WhatsApp');
+    wa.href = 'https://wa.me/265995291441?text=' + encodeURIComponent(text);
+    wa.target = '_blank'; wa.rel = 'noopener';
+    wa.addEventListener('click', function () {
+      status.textContent = 'WhatsApp will open with your answers ready. Press send there.';
+    });
+
+    var copy = el('button', 'btn ghost', 'Copy my answers'); copy.type = 'button';
+    var fallback = null;
+    copy.addEventListener('click', function () {
+      function showFallback() {
+        if (!fallback) {
+          fallback = document.createElement('textarea');
+          fallback.className = 'fallback'; fallback.readOnly = true; fallback.value = text;
+          card.insertBefore(fallback, status);
+        }
+        fallback.focus(); fallback.select();
+        status.textContent = 'Select all and copy this text, then paste it in a message.';
+      }
+      try {
+        navigator.clipboard.writeText(text).then(function () {
+          status.textContent = 'Copied. Paste it in a message to him.';
+        }, showFallback);
+      } catch (e) { showFallback(); }
+    });
+
+    wa.hidden = true; copy.hidden = true;
+    status.textContent = 'Sending your answers...';
+    mount([big, msg, sum, wa, copy, status]);
+    saveAnswers(function (ok) {
+      if (ok) {
+        status.textContent = 'Your answers have been sent. Thank you, Winnie.';
+      } else {
+        status.textContent = 'Your answers could not be sent automatically. Please use the button below.';
+        wa.hidden = false; copy.hidden = false;
+      }
+    });
+  }
+
+  function render() {
+    dots();
+    if (step === 0) return q1();
+    if (step === 1) return mount(header(1).concat([choice(1, ['I just started liking you', 'Ur my type'])]));
+    if (step === 2) return mount(header(2).concat([choice(2, ['Have some dinner with you', 'Have a little walk at the Dam / stadium'])]));
+    if (step === 3) return q4();
+    if (step === 4) return mount(header(4).concat([choice(4, ['Umandipasa busy kape iwe', 'I just wanted to test your patience'])]));
+    if (step === 5) return mount(header(5).concat([choice(5, ['I really love you PreMa', 'Ndikapange date ndiweyo PreMa?? Mbola ndiwe kape siweso type yanga'])]));
+    return result();
+  }
+
+  render();
+})();
+</script>
+
+</html>
