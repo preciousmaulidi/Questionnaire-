@@ -1,13 +1,17 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>PreMa Questions</title>
+<title>Winnie Questions</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&display=swap">
 <style>
 /* Layout: one question per screen, big tap targets, progress dots on top, result + send-back screen at the end. */
 :root {
-  --bg: #fdeff4;
-  --card: #ffffff;
+  --bg: #1c0f24;          /* dark page background */
+  --page-ink: #fbe8f1;
+  --brand: #ff7ab0;
+  --dot-off: #4a2c5a;
+  --dot-on: #ff7ab0;
+  --card: #ffffff;        /* card keeps its light look */
   --ink: #2b1630;
   --muted: #7a5f83;
   --accent: #d4206c;
@@ -16,23 +20,13 @@
   --soft: #fbdce9;
   --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
   --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #1c0f24; --card: #2a1735; --ink: #fbe8f1; --muted: #c3a6cf;
-    --accent: #ff5c9d; --accent-ink: #2b0a1a; --line: #4a2c5a; --soft: #3a2149;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #1c0f24; --card: #2a1735; --ink: #fbe8f1; --muted: #c3a6cf;
-  --accent: #ff5c9d; --accent-ink: #2b0a1a; --line: #4a2c5a; --soft: #3a2149;
-  color-scheme: dark;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
+html { background: var(--bg); }
 html, body { min-height: 100%; }
 body {
-  background: var(--bg); color: var(--ink);
+  background: var(--bg); color: var(--page-ink);
   font-family: var(--body); font-size: 17px; line-height: 1.45;
   padding-block: 20px 32px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
@@ -40,11 +34,11 @@ body {
 }
 .wrap { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.brand { font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.brand { font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--brand); }
 .dots { display: flex; gap: 6px; }
-.dot { width: 22px; height: 6px; border-radius: 6px; background: var(--line); transition: background .25s; }
-.dot.done { background: var(--accent); }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 24px 20px 22px; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.dot { width: 22px; height: 6px; border-radius: 6px; background: var(--dot-off); transition: background .25s; }
+.dot.done { background: var(--dot-on); }
+.card { color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 24px 20px 22px; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .count { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 h1, h2 { font-family: var(--display); font-weight: 800; line-height: 1.12; margin: 0; text-wrap: balance; }
 h2 { font-size: 29px; }
@@ -95,7 +89,7 @@ a.btn { text-decoration: none; }
 
 <div class="wrap">
   <div class="top">
-    <span class="brand">For PreMa</span>
+    <span class="brand">For Winnie</span>
     <div class="dots" id="dots" aria-hidden="true"></div>
   </div>
   <main class="card fade" id="card" aria-live="polite"></main>
@@ -110,7 +104,7 @@ a.btn { text-decoration: none; }
   var dotsEl = document.getElementById('dots');
 
   var LABELS = [
-    'Do you love me?',
+    'Winnie, do you love me?',
     'Why do you love me?',
     'What would you like to do with me?',
     'Select a date',
@@ -171,7 +165,7 @@ a.btn { text-decoration: none; }
     var tries = 0;
     var lines = [
       '', 'Nice try.', 'Too slow.', 'It does not want to be pressed.',
-      'Your thumb is not fast enough.', 'Just press Yes, PreMa.', 'The No button is tired now.'
+      'Your thumb is not fast enough.', 'Just press Yes, Winnie.', 'The No button is tired now.'
     ];
     var pos = { x: 0, y: 0 };
 
@@ -266,14 +260,14 @@ a.btn { text-decoration: none; }
 
   /* ---- result ---- */
   function summaryText() {
-    var lines = ['Winnie (PreMa) answered your questions:', ''];
+    var lines = ['Winnie answered your questions:', ''];
     for (var i = 0; i < TOTAL; i++) lines.push((i + 1) + '. ' + LABELS[i] + '\n   ' + (answers[i] || '-'));
     return lines.join('\n');
   }
 
   function result() {
     var loved = /^A/.test('') || (answers[5] || '').indexOf('I really love you') === 0;
-    var big = el('h1', null, loved ? 'I knew it, PreMa.' : 'Wow. Ouch, PreMa.');
+    var big = el('h1', null, loved ? 'I knew it, Winnie.' : 'Wow. Ouch, Winnie.');
     var msg = el('p', 'msg', loved
       ? 'Thank you for answering. See you ' + (answers[3] || 'this weekend') + '. I am looking forward to it.'
       : 'That answer has been noted and rejected. See you ' + (answers[3] || 'this weekend') + ' anyway.');
